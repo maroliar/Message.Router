@@ -46,15 +46,37 @@ namespace Message.Router.Client
 
                 if (topic.Contains(brokerTopics.TopicoGatewaySMSEntrada))
                 {
-
                     var payload = JsonSerializer.Deserialize<Payload>(jsonPayload);
                     await HandleSMSTopicAsync(payload);
                 }
                 if (topic.Contains(brokerTopics.TopicoGatewayTelegramEntrada))
                 {
                     var payload = JsonSerializer.Deserialize<Payload>(jsonPayload);
-                    await HandleTelegramTopic(payload);
+                    await HandleTelegramTopicAsync(payload);
                 }
+
+
+                // Resposta dos devices:
+
+                if (topic.Contains(brokerTopics.TopicoDesodorizacao))
+                {
+                    var payload = JsonSerializer.Deserialize<Payload>(jsonPayload);
+                    await HandleDesodorizacaoTopicAsync(payload);
+                }
+
+                if (topic.Contains(brokerTopics.TopicoInterfone))
+                {
+                    var payload = JsonSerializer.Deserialize<Payload>(jsonPayload);
+                    await HandleInterfoneTopicAsync(payload);
+                }
+
+                if (topic.Contains(brokerTopics.TopicoPets))
+                {
+                    var payload = JsonSerializer.Deserialize<Payload>(jsonPayload);
+                    await HandlePetsTopicAsync(payload);
+                }
+
+
             }
             catch (Exception ex)
             {
@@ -96,11 +118,6 @@ namespace Message.Router.Client
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoDesodorizacao, serializedPayload);
 
-
-                        //payload.message = "Desodorizacao executada!";
-                        //serializedPayload = PrepareMsgToBroker<PayloadMessage>(payload);
-                        //await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMSSaida, serializedPayload);
-
                         break;
 
                     case "OP3": // Abrir Portaria
@@ -108,11 +125,6 @@ namespace Message.Router.Client
                         payload.message = "ACT";
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoInterfone, serializedPayload);
-
-
-                        //payload.message = "Portaria Aberta!";
-                        //serializedPayload = PrepareMsgToBroker<PayloadMessage>(payload);
-                        //await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMSSaida, serializedPayload);
 
                         break;
 
@@ -122,13 +134,7 @@ namespace Message.Router.Client
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoPets, serializedPayload);
 
-
-                        //payload.message = "Pets Alimentados!";
-                        //serializedPayload = PrepareMsgToBroker<PayloadMessage>(payload);
-                        //await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMSSaida, serializedPayload);
-
                         break;
-
 
                     default:
 
@@ -141,7 +147,7 @@ namespace Message.Router.Client
             }
         }
 
-        public async Task HandleTelegramTopic(Payload payload)
+        public async Task HandleTelegramTopicAsync(Payload payload)
         {
             if (!string.IsNullOrEmpty(payload.message))
             {
@@ -176,11 +182,6 @@ namespace Message.Router.Client
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoDesodorizacao, serializedPayload);
 
-
-                        payload.message = "Desodorizacao executada!";
-                        serializedPayload = PrepareMsgToBroker(payload);
-                        await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
-
                         break;
 
                     case "OP3":
@@ -189,11 +190,6 @@ namespace Message.Router.Client
                         payload.message = "ACT";
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoInterfone, serializedPayload);
-
-
-                        payload.message = "Portaria Aberta!";
-                        serializedPayload = PrepareMsgToBroker(payload);
-                        await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
 
                         break;
 
@@ -204,13 +200,7 @@ namespace Message.Router.Client
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoPets, serializedPayload);
 
-
-                        payload.message = "Pets Alimentados!";
-                        serializedPayload = PrepareMsgToBroker(payload);
-                        await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
-
                         break;
-
 
                     default:
 
@@ -222,6 +212,89 @@ namespace Message.Router.Client
                 }
             }
         }
+
+
+
+        // RESPOSTA DOS DEVICES
+
+        public async Task HandleDesodorizacaoTopicAsync(Payload payload)
+        {
+            if (!string.IsNullOrEmpty(payload.message))
+            {
+                string serializedPayload;
+
+                if (payload.message.ToUpper() == "OK" && payload.source.ToUpper() == "TELEGRAM")
+                {
+                    payload.message = "Desodorizacao Executada!";
+                    serializedPayload = PrepareMsgToBroker(payload);
+                    await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                }
+
+                if (payload.message.ToUpper() == "OK" && payload.source.ToUpper() == "SMS")
+                {
+                    payload.message = "Desodorizacao Executada!";
+                    serializedPayload = PrepareMsgToBroker(payload);
+                    await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMSSaida, serializedPayload);
+                }
+            }
+        }
+
+        public async Task HandleInterfoneTopicAsync(Payload payload)
+        {
+            if (!string.IsNullOrEmpty(payload.message))
+            {
+                string serializedPayload;
+
+                if (payload.message.ToUpper() == "OK" && payload.source.ToUpper() == "TELEGRAM")
+                {
+                    payload.message = "Portaria Aberta!";
+                    serializedPayload = PrepareMsgToBroker(payload);
+                    await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                }
+
+                if (payload.message.ToUpper() == "OK" && payload.source.ToUpper() == "SMS")
+                {
+                    payload.message = "Portaria Aberta!";
+                    serializedPayload = PrepareMsgToBroker(payload);
+                    await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMSSaida, serializedPayload);
+                }
+
+                // Por enquanto, apenas recebe notificações pelo Telegram, não por SMS
+                if (payload.message.ToUpper() == "RING")
+                {
+                    payload.message = "Parece que tem alguem tocando o Interfone!";
+                    serializedPayload = PrepareMsgToBroker(payload);
+                    await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                }
+            }
+        }
+
+        public async Task HandlePetsTopicAsync(Payload payload)
+        {
+            if (!string.IsNullOrEmpty(payload.message))
+            {
+                string serializedPayload;
+
+                if (payload.message.ToUpper() == "OK" && payload.source.ToUpper() == "TELEGRAM")
+                {
+                    payload.message = "Pets Alimentados!";
+                    serializedPayload = PrepareMsgToBroker(payload);
+                    await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                }
+
+                if (payload.message.ToUpper() == "OK" && payload.source.ToUpper() == "SMS")
+                {
+                    payload.message = "Pets Alimentados!";
+                    serializedPayload = PrepareMsgToBroker(payload);
+                    await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMSSaida, serializedPayload);
+                }
+            }
+        }
+
+
+
+
+
 
         public string PrepareMsgToBroker(Payload payload)
         {
