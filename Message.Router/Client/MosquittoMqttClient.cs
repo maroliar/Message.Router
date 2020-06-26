@@ -57,6 +57,12 @@ namespace Message.Router.Client
 
 
                 // Resposta dos devices:
+                
+                if (topic.Contains(brokerTopics.TopicoTemperatura))
+                {
+                    var payload = JsonSerializer.Deserialize<Payload>(jsonPayload);
+                    await HandleTemperaturaTopicAsync(payload);
+                }
 
                 if (topic.Contains(brokerTopics.TopicoDesodorizacao))
                 {
@@ -216,6 +222,22 @@ namespace Message.Router.Client
 
 
         // RESPOSTA DOS DEVICES
+        
+        public async Task HandleTemperaturaTopicAsync(Payload payload)
+        {
+            if (!string.IsNullOrEmpty(payload.message))
+            {
+                string serializedPayload;
+
+                // Por enquanto, apenas envia notificações pelo Telegram, não por SMS
+                if (int.TryParse(payload.message, out _) && payload.source.ToUpper() == "TELEGRAM")
+                {
+                    payload.message = "Temperatura do Raspberry muito alta! " + payload.message;
+                    serializedPayload = PrepareMsgToBroker(payload);
+                    await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                }
+            }
+        }
 
         public async Task HandleDesodorizacaoTopicAsync(Payload payload)
         {
@@ -259,8 +281,8 @@ namespace Message.Router.Client
                     await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMSSaida, serializedPayload);
                 }
 
-                // Por enquanto, apenas recebe notificações pelo Telegram, não por SMS
-                if (payload.message.ToUpper() == "RING")
+                // Por enquanto, apenas envia notificações pelo Telegram, não por SMS
+                if (payload.message.ToUpper() == "RING" && payload.source.ToUpper() == "TELEGRAM")
                 {
                     payload.message = "Parece que tem alguem tocando o Interfone!";
                     serializedPayload = PrepareMsgToBroker(payload);
@@ -346,6 +368,7 @@ namespace Message.Router.Client
             await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(brokerTopics.TopicoGatewayTelegramEntrada).Build());
             await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(brokerTopics.TopicoGatewayTelegramSaida).Build());
 
+            await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(brokerTopics.TopicoTemperatura).Build());
             await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(brokerTopics.TopicoDesodorizacao).Build());
             await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(brokerTopics.TopicoInterfone).Build());
             await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(brokerTopics.TopicoPets).Build());
