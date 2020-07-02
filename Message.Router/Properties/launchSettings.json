@@ -18,8 +18,7 @@
     },
     "Message.Router": {
       "commandName": "Project",
-      "launchBrowser": true,
-      //"applicationUrl": "http://localhost:5002",
+      "launchBrowser": false,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

@@ -218,10 +218,6 @@ namespace Message.Router.Client
                 }
             }
         }
-
-
-
-        // RESPOSTA DOS DEVICES
         
         public async Task HandleTemperaturaTopicAsync(Payload payload)
         {
@@ -314,10 +310,6 @@ namespace Message.Router.Client
         }
 
 
-
-
-
-
         public string PrepareMsgToBroker(Payload payload)
         {
             var jsonPayload = JsonSerializer.Serialize(payload, new JsonSerializerOptions
@@ -379,9 +371,9 @@ namespace Message.Router.Client
             }
         }
 
-        public Task StopMqttClientAsync()
+        public async Task StopMqttClientAsync()
         {
-            throw new NotImplementedException();
+            await mqttClient.DisconnectAsync();
         }
     }
 }
