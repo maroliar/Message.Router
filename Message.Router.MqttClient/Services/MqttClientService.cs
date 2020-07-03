@@ -40,7 +40,7 @@ namespace Message.Router.MqttClient.Services
         private void ConfigureMqttClient()
         {
             mqttClient.ConnectedHandler = this;
-            mqttClient.DisconnectedHandler = this;
+            //mqttClient.DisconnectedHandler = this;
             mqttClient.ApplicationMessageReceivedHandler = this;
         }
 
@@ -60,11 +60,11 @@ namespace Message.Router.MqttClient.Services
             await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(brokerTopics.TopicoPets).Build());
         }
 
-        public Task HandleDisconnectedAsync(MqttClientDisconnectedEventArgs eventArgs)
-        {
-            // ação de gravar no log a desconeccao
-            throw new NotImplementedException();
-        }
+        //public Task HandleDisconnectedAsync(MqttClientDisconnectedEventArgs eventArgs)
+        //{
+        //    // ação de gravar no log a desconeccao
+        //    throw new NotImplementedException();
+        //}
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {

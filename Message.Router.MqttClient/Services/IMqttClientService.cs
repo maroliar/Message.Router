@@ -7,7 +7,7 @@ namespace Message.Router.MqttClient.Services
 {
     public interface IMqttClientService : IHostedService,
                                           IMqttClientConnectedHandler,
-                                          IMqttClientDisconnectedHandler,
+                                          //IMqttClientDisconnectedHandler,
                                           IMqttApplicationMessageReceivedHandler
     {
     }
