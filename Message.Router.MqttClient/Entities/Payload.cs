@@ -1,4 +1,4 @@
-﻿namespace Message.Router.Entities
+﻿namespace Message.Router.MqttClient.Entities
 {
     public class Payload
     {

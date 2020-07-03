@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
-namespace Message.Router
+namespace Message.Router.MqttClient
 {
     public class Program
     {

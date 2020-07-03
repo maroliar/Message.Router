@@ -1,12 +1,13 @@
-using Message.Router.Extensions;
-using Message.Router.Settings;
+using Message.Router.MqttClient.Extensions;
+using Message.Router.MqttClient.Services;
+using Message.Router.MqttClient.Settings;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Message.Router
+namespace Message.Router.MqttClient
 {
     public class Startup
     {
@@ -14,8 +15,9 @@ namespace Message.Router
         {
             Configuration = configuration;
             MapConfiguration();
-
         }
+
+        public IConfiguration Configuration;
 
         private void MapConfiguration()
         {
@@ -45,14 +47,10 @@ namespace Message.Router
             AppSettingsProvider.BrokerTopics = brokerTopics;
         }
 
-
-        public IConfiguration Configuration { get; }
-
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
             services.AddMqttClientHostedService();
+            services.AddSingleton<ExternalService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -63,16 +61,12 @@ namespace Message.Router
                 app.UseDeveloperExceptionPage();
             }
 
-            //app.UseHttpsRedirection();
-
             app.UseRouting();
 
-            //app.UseAuthorization();
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+            //app.UseEndpoints(endpoints =>
+            //{
+            //    endpoints.();
+            //});
         }
     }
 }

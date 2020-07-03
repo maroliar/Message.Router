@@ -1,4 +1,4 @@
-﻿namespace Message.Router.Settings
+﻿namespace Message.Router.MqttClient.Settings
 {
     public class BrokerHostSettings
     {

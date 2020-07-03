@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Message.Router", "Message.Router\Message.Router.csproj", "{47771023-7741-4A74-8C6E-3EC3CCF7B6E2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Message.Router.MqttClient", "Message.Router.MqttClient\Message.Router.MqttClient.csproj", "{FAA5FA35-164C-4636-864E-DB677CCB4ACB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +11,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{47771023-7741-4A74-8C6E-3EC3CCF7B6E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{47771023-7741-4A74-8C6E-3EC3CCF7B6E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{47771023-7741-4A74-8C6E-3EC3CCF7B6E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{47771023-7741-4A74-8C6E-3EC3CCF7B6E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FAA5FA35-164C-4636-864E-DB677CCB4ACB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FAA5FA35-164C-4636-864E-DB677CCB4ACB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FAA5FA35-164C-4636-864E-DB677CCB4ACB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FAA5FA35-164C-4636-864E-DB677CCB4ACB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
