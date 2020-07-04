@@ -1,5 +1,6 @@
 ﻿using Message.Router.MqttClient.Entities;
 using Message.Router.MqttClient.Settings;
+using Microsoft.Extensions.Logging;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Connecting;
@@ -17,8 +18,10 @@ namespace Message.Router.MqttClient.Services
 {
     public class MqttClientService : IMqttClientService
     {
-        private IMqttClient mqttClient;
-        private IMqttClientOptions options;
+        private readonly IMqttClientOptions _options;
+        private readonly ILogger<MqttClientService> _logger;
+
+        private readonly IMqttClient mqttClient;
 
         private readonly BrokerTopics brokerTopics = AppSettingsProvider.BrokerTopics;
         private readonly ClientSettings clientSettings = AppSettingsProvider.ClientSettings;
@@ -30,9 +33,10 @@ namespace Message.Router.MqttClient.Services
             + "\r\nOP3 - Abrir Portaria "
             + "\r\nOP4 - Alimentar Pets";
 
-        public MqttClientService(IMqttClientOptions options)
+        public MqttClientService(IMqttClientOptions options, ILogger<MqttClientService> logger)
         {
-            this.options = options;
+            _options = options;
+            _logger = logger;
             mqttClient = new MqttFactory().CreateMqttClient();
             ConfigureMqttClient();
         }
@@ -68,7 +72,7 @@ namespace Message.Router.MqttClient.Services
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            await mqttClient.ConnectAsync(options);
+            await mqttClient.ConnectAsync(_options);
 
             // anuncia status online
             Payload payload = new Payload
@@ -80,6 +84,8 @@ namespace Message.Router.MqttClient.Services
 
             var serializedDeviceStatus = PrepareMsgToBroker(payload);
             await PublishMqttClientAsync(brokerTopics.TopicoMessageRouter, serializedDeviceStatus);
+
+            _logger.LogInformation(serializedDeviceStatus);
 
             if (!mqttClient.IsConnected)
             {
@@ -101,6 +107,9 @@ namespace Message.Router.MqttClient.Services
                 await mqttClient.DisconnectAsync(disconnectOption, cancellationToken);
             }
             await mqttClient.DisconnectAsync();
+
+            _logger.LogInformation("Encerrando...");
+
         }
 
 
@@ -112,9 +121,9 @@ namespace Message.Router.MqttClient.Services
                 var payload = JsonSerializer.Deserialize<Payload>(jsonPayload);
 
                 var topic = eventArgs.ApplicationMessage.Topic;
-                
-                Console.WriteLine("Nova mensagem recebida do broker, no topico de: " + topic);
-                Console.WriteLine(jsonPayload);
+
+                _logger.LogInformation(string.Format("Nova mensagem recebida do broker, no topico: {0}", topic));
+                _logger.LogInformation(jsonPayload);
 
                 if (topic.Contains(brokerTopics.TopicoGatewaySMSEntrada))
                 {
@@ -147,7 +156,7 @@ namespace Message.Router.MqttClient.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Erro ao tentar ler a mensagem: " + ex.Message);
+                _logger.LogError("Erro ao tentar ler a mensagem: " + ex.Message);
             }
         }
 
@@ -167,7 +176,7 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 
-                    case "OP1": // Checar Temperatura
+                    case "OP1": 
 
                         Random rnd = new Random();
                         int temp = rnd.Next(10, 40);
@@ -178,7 +187,7 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 
-                    case "OP2": // Desodorizar Ambiente
+                    case "OP2": 
 
                         payload.message = "ACT";
                         serializedPayload = PrepareMsgToBroker(payload);
@@ -186,7 +195,7 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 
-                    case "OP3": // Abrir Portaria
+                    case "OP3":
 
                         payload.message = "ACT";
                         serializedPayload = PrepareMsgToBroker(payload);
@@ -194,7 +203,7 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 
-                    case "OP4": // Alimentar Pets
+                    case "OP4":
 
                         payload.message = "ACT";
                         serializedPayload = PrepareMsgToBroker(payload);
@@ -382,11 +391,8 @@ namespace Message.Router.MqttClient.Services
 
         public async Task PublishMqttClientAsync(string topic, string payload, bool retainFlag = false, int qos = 0)
         {
-            Console.WriteLine("Enviando mensagem para o broker: ");
-            Console.WriteLine(payload);
-
-            Console.Write("Topico: ");
-            Console.WriteLine(topic);
+            _logger.LogInformation(string.Format("Enviando mensagem para o broker: {0}", payload));
+            _logger.LogInformation(string.Format("Topico: {0}", topic));
 
             await mqttClient.PublishAsync(new MqttApplicationMessageBuilder()
                 .WithTopic(topic)
