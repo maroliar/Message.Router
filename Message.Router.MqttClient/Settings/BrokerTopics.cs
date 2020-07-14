@@ -14,5 +14,9 @@
         public string TopicoDesodorizacao { get; set; }
         public string TopicoInterfone { get; set; }
         public string TopicoPets { get; set; }
+        
+        public string TopicoRastreioEncomendas { get; set; }
+
+        public string TopicoInternalDevices { get; set; }
     }
 }
