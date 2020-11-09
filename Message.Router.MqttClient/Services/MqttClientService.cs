@@ -27,11 +27,11 @@ namespace Message.Router.MqttClient.Services
         private readonly ClientSettings clientSettings = AppSettingsProvider.ClientSettings;
 
         private readonly string menu = "Home Automation"
-            + "\r\nEscolha a opcao abaixo: "
-            + "\r\nOP1 - Informar Temperatura "
-            + "\r\nOP2 - Desodorizar Ambiente "
-            + "\r\nOP3 - Abrir Portaria "
-            + "\r\nOP4 - Alimentar Pets";
+            + "\r\nDigite: "
+            + "\r\n1 para Informar Temperatura "
+            + "\r\n2 para Desodorizar Ambiente "
+            + "\r\n3 para Abrir Portaria "
+            + "\r\n4 para Alimentar Pets";
 
         public MqttClientService(IMqttClientOptions options, ILogger<MqttClientService> logger)
         {
@@ -176,7 +176,7 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 
-                    case "OP1": 
+                    case "1": 
 
                         Random rnd = new Random();
                         int temp = rnd.Next(10, 40);
@@ -187,7 +187,7 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 
-                    case "OP2": 
+                    case "2": 
 
                         payload.message = "ACT";
                         serializedPayload = PrepareMsgToBroker(payload);
@@ -195,7 +195,7 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 
-                    case "OP3":
+                    case "3":
 
                         payload.message = "ACT";
                         serializedPayload = PrepareMsgToBroker(payload);
@@ -203,7 +203,7 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 
-                    case "OP4":
+                    case "4":
 
                         payload.message = "ACT";
                         serializedPayload = PrepareMsgToBroker(payload);
@@ -238,7 +238,7 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 
-                    case "OP1":
+                    case "1":
                     case "INFORMAR TEMPERATURA":
 
                         Random rnd = new Random();
@@ -250,7 +250,7 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 
-                    case "OP2":
+                    case "2":
                     case "DESODORIZAR AMBIENTE":
 
                         payload.message = "ACT";
@@ -259,7 +259,7 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 
-                    case "OP3":
+                    case "3":
                     case "ABRIR PORTARIA":
 
                         payload.message = "ACT";
@@ -268,7 +268,7 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 
-                    case "OP4":
+                    case "4":
                     case "ALIMENTAR PETS":
 
                         payload.message = "ACT";
