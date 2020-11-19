@@ -176,7 +176,7 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 
-                    case "1": 
+                    case "1":
 
                         Random rnd = new Random();
                         int temp = rnd.Next(10, 40);
@@ -187,7 +187,7 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 
-                    case "2": 
+                    case "2":
 
                         payload.message = "ACT";
                         serializedPayload = PrepareMsgToBroker(payload);
@@ -212,11 +212,11 @@ namespace Message.Router.MqttClient.Services
                         break;
 
 
-                    // OPÇÕES ADMINISTRATIVAS, OCULTAS POR DEFAULT AO MENU, E SEM RESPOSTA POR ENQUANTO
+                    // OPÇÕES ADMINISTRATIVAS, OCULTAS POR DEFAULT AO MENU
 
                     case "RST PETS": // RESTART PETS
 
-                        payload.message = "RST"; 
+                        payload.message = "RST";
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoPets, serializedPayload);
 
@@ -229,6 +229,9 @@ namespace Message.Router.MqttClient.Services
                         await PublishMqttClientAsync(brokerTopics.TopicoInterfone, serializedPayload);
 
                         break;
+
+
+                    // OPÇÕES ADMINISTRATIVAS DO BROKER, OCULTAS POR DEFAULT AO MENU, E SEM RESPOSTA POR ENQUANTO
 
                     case "RST BRK": // RESTART BROKER
 
@@ -310,7 +313,7 @@ namespace Message.Router.MqttClient.Services
                         break;
 
 
-                    // OPÇÕES ADMINISTRATIVAS, OCULTAS POR DEFAULT AO MENU, E SEM RESPOSTA POR ENQUANTO
+                    // OPÇÕES ADMINISTRATIVAS, OCULTAS POR DEFAULT AO MENU
 
                     case "RST PETS": // RESTART PETS
 
@@ -327,6 +330,9 @@ namespace Message.Router.MqttClient.Services
                         await PublishMqttClientAsync(brokerTopics.TopicoInterfone, serializedPayload);
 
                         break;
+
+
+                    // OPÇÕES ADMINISTRATIVAS DO BROKER, OCULTAS POR DEFAULT AO MENU, E SEM RESPOSTA POR ENQUANTO
 
                     case "RST BRK": // RESTART BROKER
 
