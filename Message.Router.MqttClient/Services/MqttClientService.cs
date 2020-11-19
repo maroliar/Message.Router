@@ -211,6 +211,26 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 
+
+                    // OPÇÕES ADMINISTRATIVAS, OCULTAS POR DEFAULT AO MENU
+
+                    case "RST PETS":
+
+                        payload.message = "RST";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoPets, serializedPayload);
+
+                        break;
+
+                    case "RST INT":
+
+                        payload.message = "RST";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoInterfone, serializedPayload);
+
+                        break;
+
+
                     default:
 
                         payload.message = "Opcao Invalida!";
@@ -239,7 +259,6 @@ namespace Message.Router.MqttClient.Services
                         break;
 
                     case "1":
-                    case "INFORMAR TEMPERATURA":
 
                         Random rnd = new Random();
                         int temp = rnd.Next(10, 40);
@@ -251,7 +270,6 @@ namespace Message.Router.MqttClient.Services
                         break;
 
                     case "2":
-                    case "DESODORIZAR AMBIENTE":
 
                         payload.message = "ACT";
                         serializedPayload = PrepareMsgToBroker(payload);
@@ -260,7 +278,6 @@ namespace Message.Router.MqttClient.Services
                         break;
 
                     case "3":
-                    case "ABRIR PORTARIA":
 
                         payload.message = "ACT";
                         serializedPayload = PrepareMsgToBroker(payload);
@@ -269,13 +286,32 @@ namespace Message.Router.MqttClient.Services
                         break;
 
                     case "4":
-                    case "ALIMENTAR PETS":
 
                         payload.message = "ACT";
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoPets, serializedPayload);
 
                         break;
+
+
+                    // OPÇÕES ADMINISTRATIVAS, OCULTAS POR DEFAULT AO MENU
+
+                    case "RST PETS":
+
+                        payload.message = "RST";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoPets, serializedPayload);
+
+                        break;
+
+                    case "RST INT":
+
+                        payload.message = "RST";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoInterfone, serializedPayload);
+
+                        break;
+
 
                     default:
 
