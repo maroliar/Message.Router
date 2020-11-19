@@ -212,21 +212,37 @@ namespace Message.Router.MqttClient.Services
                         break;
 
 
-                    // OPÇÕES ADMINISTRATIVAS, OCULTAS POR DEFAULT AO MENU
+                    // OPÇÕES ADMINISTRATIVAS, OCULTAS POR DEFAULT AO MENU, E SEM RESPOSTA POR ENQUANTO
 
-                    case "RST PETS":
+                    case "RST PETS": // RESTART PETS
 
-                        payload.message = "RST";
+                        payload.message = "RST"; 
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoPets, serializedPayload);
 
                         break;
 
-                    case "RST INT":
+                    case "RST INT": // RESTART INTERFONE
 
                         payload.message = "RST";
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoInterfone, serializedPayload);
+
+                        break;
+
+                    case "RST BRK": // RESTART BROKER
+
+                        payload.message = "RESTART";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoConfig, serializedPayload);
+
+                        break;
+
+                    case "STD BRK": // SHUTDOWN BROKER
+
+                        payload.message = "SHUTDOWN";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoConfig, serializedPayload);
 
                         break;
 
@@ -294,9 +310,9 @@ namespace Message.Router.MqttClient.Services
                         break;
 
 
-                    // OPÇÕES ADMINISTRATIVAS, OCULTAS POR DEFAULT AO MENU
+                    // OPÇÕES ADMINISTRATIVAS, OCULTAS POR DEFAULT AO MENU, E SEM RESPOSTA POR ENQUANTO
 
-                    case "RST PETS":
+                    case "RST PETS": // RESTART PETS
 
                         payload.message = "RST";
                         serializedPayload = PrepareMsgToBroker(payload);
@@ -304,11 +320,27 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 
-                    case "RST INT":
+                    case "RST INT": // RESTART INTERFONE
 
                         payload.message = "RST";
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoInterfone, serializedPayload);
+
+                        break;
+
+                    case "RST BRK": // RESTART BROKER
+
+                        payload.message = "RESTART";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoConfig, serializedPayload);
+
+                        break;
+
+                    case "STD BRK": // SHUTDOWN BROKER
+
+                        payload.message = "SHUTDOWN";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoConfig, serializedPayload);
 
                         break;
 
@@ -389,6 +421,22 @@ namespace Message.Router.MqttClient.Services
                     serializedPayload = PrepareMsgToBroker(payload);
                     await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
                 }
+
+                // COMANDOS ADMINISTRATIVOS
+
+                if (payload.message.ToUpper() == "OK RST" && payload.source.ToUpper() == "TELEGRAM")
+                {
+                    payload.message = "ESP RESTARTED";
+                    serializedPayload = PrepareMsgToBroker(payload);
+                    await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                }
+
+                if (payload.message.ToUpper() == "OK RST" && payload.source.ToUpper() == "SMS")
+                {
+                    payload.message = "ESP RESTARTED";
+                    serializedPayload = PrepareMsgToBroker(payload);
+                    await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMSSaida, serializedPayload);
+                }
             }
         }
 
@@ -411,8 +459,61 @@ namespace Message.Router.MqttClient.Services
                     serializedPayload = PrepareMsgToBroker(payload);
                     await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMSSaida, serializedPayload);
                 }
+
+                // COMANDOS ADMINISTRATIVOS
+
+                if (payload.message.ToUpper() == "OK RST" && payload.source.ToUpper() == "TELEGRAM")
+                {
+                    payload.message = "ESP RESTARTED";
+                    serializedPayload = PrepareMsgToBroker(payload);
+                    await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                }
+
+                if (payload.message.ToUpper() == "OK RST" && payload.source.ToUpper() == "SMS")
+                {
+                    payload.message = "ESP RESTARTED";
+                    serializedPayload = PrepareMsgToBroker(payload);
+                    await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMSSaida, serializedPayload);
+                }
             }
         }
+
+        public async Task HandleConfigTopicAsync(Payload payload)
+        {
+            if (!string.IsNullOrEmpty(payload.message))
+            {
+                string serializedPayload;
+
+                if (payload.message.ToUpper() == "OK RST" && payload.source.ToUpper() == "TELEGRAM")
+                {
+                    payload.message = "BROKER RESTARTED";
+                    serializedPayload = PrepareMsgToBroker(payload);
+                    await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                }
+
+                if (payload.message.ToUpper() == "OK RST" && payload.source.ToUpper() == "SMS")
+                {
+                    payload.message = "BROKER RESTARTED";
+                    serializedPayload = PrepareMsgToBroker(payload);
+                    await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMSSaida, serializedPayload);
+                }
+
+                if (payload.message.ToUpper() == "OK STD" && payload.source.ToUpper() == "TELEGRAM")
+                {
+                    payload.message = "BROKER HALTED";
+                    serializedPayload = PrepareMsgToBroker(payload);
+                    await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                }
+
+                if (payload.message.ToUpper() == "OK STD" && payload.source.ToUpper() == "SMS")
+                {
+                    payload.message = "BROKER HALTED";
+                    serializedPayload = PrepareMsgToBroker(payload);
+                    await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMSSaida, serializedPayload);
+                }
+            }
+        }
+
 
 
         public string PrepareMsgToBroker(Payload payload)
