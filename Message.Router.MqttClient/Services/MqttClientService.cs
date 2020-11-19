@@ -231,7 +231,7 @@ namespace Message.Router.MqttClient.Services
                         break;
 
 
-                    // OPÇÕES ADMINISTRATIVAS DO BROKER, OCULTAS POR DEFAULT AO MENU, E SEM RESPOSTA POR ENQUANTO
+                    // OPÇÕES ADMINISTRATIVAS DO BROKER, OCULTAS POR DEFAULT AO MENU, E COM RESPOSTA HARDCODED NO SCRIPT brokerConfig.sh
 
                     case "RST BRK": // RESTART BROKER
 
@@ -332,7 +332,7 @@ namespace Message.Router.MqttClient.Services
                         break;
 
 
-                    // OPÇÕES ADMINISTRATIVAS DO BROKER, OCULTAS POR DEFAULT AO MENU, E SEM RESPOSTA POR ENQUANTO
+                    // OPÇÕES ADMINISTRATIVAS DO BROKER, OCULTAS POR DEFAULT AO MENU, E COM RESPOSTA HARDCODED NO SCRIPT brokerConfig.sh
 
                     case "RST BRK": // RESTART BROKER
 
@@ -519,7 +519,6 @@ namespace Message.Router.MqttClient.Services
                 }
             }
         }
-
 
 
         public string PrepareMsgToBroker(Payload payload)
