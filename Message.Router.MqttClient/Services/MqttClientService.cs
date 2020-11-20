@@ -102,7 +102,7 @@ namespace Message.Router.MqttClient.Services
                 var disconnectOption = new MqttClientDisconnectOptions
                 {
                     ReasonCode = MqttClientDisconnectReason.NormalDisconnection,
-                    ReasonString = "NormalDiconnection"
+                    ReasonString = "NormalDisconnection"
                 };
                 await mqttClient.DisconnectAsync(disconnectOption, cancellationToken);
             }
@@ -389,13 +389,13 @@ namespace Message.Router.MqttClient.Services
 
                     if (temp > 0 && temp < 80) // provavel origem de solicitação do usuario
                     {
-                        payload.message = "Temperatura do Raspberry PI 3: " + payload.message;
+                        payload.message = string.Format("Temperatura do RBPi 3: {0}º", payload.message);
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
                     }
                     else if (temp >= 80)       // provavel origem do script de alertRaspberryTemperature
                     {
-                        payload.message = "Temperatura do Raspberry PI 3 muito alta: " + payload.message;
+                        payload.message = string.Format("Temperatura do RBPi 3 muito alta! {0}º", payload.message);
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
                     }
