@@ -28,7 +28,7 @@ namespace Message.Router.MqttClient.Services
 
         private readonly string menu = "Home Automation"
             + "\r\nDigite: "
-            + "\r\n1 para Informar Temperatura "
+            + "\r\n1 para Temperatura RBPi 3"
             + "\r\n2 para Desodorizar Ambiente "
             + "\r\n3 para Abrir Portaria "
             + "\r\n4 para Alimentar Pets";
@@ -178,12 +178,9 @@ namespace Message.Router.MqttClient.Services
 
                     case "1":
 
-                        Random rnd = new Random();
-                        int temp = rnd.Next(10, 40);
-
-                        payload.message = "Temperatura no momento: " + temp + " graus.";
+                        payload.message = "GET";
                         serializedPayload = PrepareMsgToBroker(payload);
-                        await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMSSaida, serializedPayload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoTemperatura, serializedPayload);
 
                         break;
 
@@ -227,6 +224,14 @@ namespace Message.Router.MqttClient.Services
                         payload.message = "RST";
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoInterfone, serializedPayload);
+
+                        break;
+
+                    case "RST DES": // RESTART INTERFONE
+
+                        payload.message = "RST";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoDesodorizacao, serializedPayload);
 
                         break;
 
@@ -279,12 +284,9 @@ namespace Message.Router.MqttClient.Services
 
                     case "1":
 
-                        Random rnd = new Random();
-                        int temp = rnd.Next(10, 40);
-
-                        payload.message = "Temperatura no momento: " + temp + " graus.";
+                        payload.message = "GET";
                         serializedPayload = PrepareMsgToBroker(payload);
-                        await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoTemperatura, serializedPayload);
 
                         break;
 
@@ -331,6 +333,14 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 
+                    case "RST DES": // RESTART INTERFONE
+
+                        payload.message = "RST";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoDesodorizacao, serializedPayload);
+
+                        break;
+
 
                     // OPÇÕES ADMINISTRATIVAS DO BROKER, OCULTAS POR DEFAULT AO MENU, E COM RESPOSTA HARDCODED NO SCRIPT brokerConfig.sh
 
@@ -369,11 +379,26 @@ namespace Message.Router.MqttClient.Services
                 string serializedPayload;
 
                 // Por enquanto, apenas envia notificações pelo Telegram, não por SMS
-                if (int.TryParse(payload.message, out _) && payload.source.ToUpper() == "TELEGRAM")
+                if (payload.source.ToUpper() == "TELEGRAM")
                 {
-                    payload.message = "Temperatura do Raspberry muito alta! " + payload.message;
-                    serializedPayload = PrepareMsgToBroker(payload);
-                    await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                    // Não é o ideal ter essa inteligencia aqui, tendo em vista que o script ainda nao quebra as msg json recebidas
+                    // para detectar o sender (telegram ou sms) e responder a ele diretamente. A Resposta entao é enviada apenas para
+                    // o Telegram hardcoded.
+
+                    int? temp = Convert.ToInt32(payload.message);
+
+                    if (temp > 0 && temp < 80) // provavel origem de solicitação do usuario
+                    {
+                        payload.message = "Temperatura do Raspberry PI 3: " + payload.message;
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                    }
+                    else if (temp >= 80)       // provavel origem do script de alertRaspberryTemperature
+                    {
+                        payload.message = "Temperatura do Raspberry PI 3 muito alta: " + payload.message;
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                    }
                 }
             }
         }
@@ -394,6 +419,22 @@ namespace Message.Router.MqttClient.Services
                 if (payload.message.ToUpper() == "OK" && payload.source.ToUpper() == "SMS")
                 {
                     payload.message = "Desodorizacao Executada!";
+                    serializedPayload = PrepareMsgToBroker(payload);
+                    await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMSSaida, serializedPayload);
+                }
+
+                // COMANDOS ADMINISTRATIVOS
+
+                if (payload.message.ToUpper() == "OK RST" && payload.source.ToUpper() == "TELEGRAM")
+                {
+                    payload.message = "ESP RESTARTED";
+                    serializedPayload = PrepareMsgToBroker(payload);
+                    await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                }
+
+                if (payload.message.ToUpper() == "OK RST" && payload.source.ToUpper() == "SMS")
+                {
+                    payload.message = "ESP RESTARTED";
                     serializedPayload = PrepareMsgToBroker(payload);
                     await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMSSaida, serializedPayload);
                 }
