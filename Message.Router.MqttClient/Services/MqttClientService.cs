@@ -28,7 +28,7 @@ namespace Message.Router.MqttClient.Services
 
         private readonly string menu = "Home Automation"
             + "\r\nDigite: "
-            + "\r\n1 para Temperatura RBPi 3"
+            + "\r\n1 para Temperatura Raspberry"
             + "\r\n2 para Desodorizar Ambiente "
             + "\r\n3 para Abrir Portaria "
             + "\r\n4 para Alimentar Pets";
@@ -227,11 +227,19 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 
-                    case "RST DES": // RESTART INTERFONE
+                    case "RST DES": // RESTART DESODORIZADOR
 
                         payload.message = "RST";
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoDesodorizacao, serializedPayload);
+
+                        break;
+						
+					case "RST SMS": // RESTART GATEWAY SMS
+
+                        payload.message = "RST";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMS, serializedPayload);
 
                         break;
 
@@ -333,11 +341,19 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 
-                    case "RST DES": // RESTART INTERFONE
+                    case "RST DES": // RESTART DESODORIZADOR
 
                         payload.message = "RST";
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoDesodorizacao, serializedPayload);
+
+                        break;
+						
+					case "RST SMS": // RESTART GATEWAY SMS
+
+                        payload.message = "RST";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMS, serializedPayload);
 
                         break;
 
@@ -377,27 +393,38 @@ namespace Message.Router.MqttClient.Services
             if (!string.IsNullOrEmpty(payload.message))
             {
                 string serializedPayload;
+				
+				int? temp = Convert.ToInt32(payload.message);
 
-                // Por enquanto, apenas envia notificações pelo Telegram, não por SMS
                 if (payload.source.ToUpper() == "TELEGRAM")
                 {
-                    // Não é o ideal ter essa inteligencia aqui, tendo em vista que o script ainda nao quebra as msg json recebidas
-                    // para detectar o sender (telegram ou sms) e responder a ele diretamente. A Resposta entao é enviada apenas para
-                    // o Telegram hardcoded.
-
-                    int? temp = Convert.ToInt32(payload.message);
-
                     if (temp > 0 && temp < 80) // provavel origem de solicitação do usuario
                     {
-                        payload.message = string.Format("Temperatura do RBPi 3: {0}º", payload.message);
+                        payload.message = string.Format("Temperatura do RaspBerry: {0}º", payload.message);
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
                     }
                     else if (temp >= 80)       // provavel origem do script de alertRaspberryTemperature
                     {
-                        payload.message = string.Format("Temperatura do RBPi 3 muito alta! {0}º", payload.message);
+                        payload.message = string.Format("Temperatura do RaspBerry muito alta! {0}º", payload.message);
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                    }
+                }
+				
+				if (payload.source.ToUpper() == "SMS")
+                {
+                    if (temp > 0 && temp < 80) // provavel origem de solicitação do usuario
+                    {
+                        payload.message = string.Format("Temperatura do RaspBerry: {0}º", payload.message);
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMSSaida, serializedPayload);
+                    }
+                    else if (temp >= 80)       // provavel origem do script de alertRaspberryTemperature
+                    {
+                        payload.message = string.Format("Temperatura do RaspBerry muito alta! {0}º", payload.message);
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMSSaida, serializedPayload);
                     }
                 }
             }

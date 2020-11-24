@@ -3,10 +3,12 @@
     public class BrokerTopics
     {
         public string TopicoMessageRouter { get; set; }
-
+        
+        public string TopicoGatewaySMS { get; set; }
         public string TopicoGatewaySMSEntrada { get; set; }
         public string TopicoGatewaySMSSaida { get; set; }
-        
+
+        public string TopicoGatewayTelegram { get; set; }
         public string TopicoGatewayTelegramEntrada { get; set; }
         public string TopicoGatewayTelegramSaida { get; set; }
         
