@@ -235,7 +235,7 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 						
-					case "RST SMS": // RESTART GATEWAY SMS
+					case "RST SMS": // RESTART GATEWAY SMS // INVIAVEL A RESPOSTA DO DEVICE..
 
                         payload.message = "RST";
                         serializedPayload = PrepareMsgToBroker(payload);
@@ -349,7 +349,7 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 						
-					case "RST SMS": // RESTART GATEWAY SMS // INVIAVEL RESPOSTA DO GATEWAY.
+					case "RST SMS": // RESTART GATEWAY SMS // INVIAVEL RESPOSTA DO DEVICE..
 
                         payload.message = "RST";
                         serializedPayload = PrepareMsgToBroker(payload);
@@ -486,14 +486,6 @@ namespace Message.Router.MqttClient.Services
                     payload.message = "Portaria Aberta!";
                     serializedPayload = PrepareMsgToBroker(payload);
                     await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMSSaida, serializedPayload);
-                }
-
-                // Por enquanto, apenas envia notificações pelo Telegram, não por SMS
-                if (payload.message.ToUpper() == "RING" && payload.source.ToUpper() == "TELEGRAM")
-                {
-                    payload.message = "Parece que tem alguem tocando o Interfone!";
-                    serializedPayload = PrepareMsgToBroker(payload);
-                    await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
                 }
 
                 // COMANDOS ADMINISTRATIVOS
