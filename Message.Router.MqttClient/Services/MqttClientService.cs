@@ -26,12 +26,30 @@ namespace Message.Router.MqttClient.Services
         private readonly BrokerTopics brokerTopics = AppSettingsProvider.BrokerTopics;
         private readonly ClientSettings clientSettings = AppSettingsProvider.ClientSettings;
 
+        private bool flagAdminMenu;
+        private bool flagScheduleMenu;
+
         private readonly string menu = "Home Automation"
             + "\r\nDigite: "
             + "\r\n1 para Temperatura Raspberry"
             + "\r\n2 para Desodorizar Ambiente "
             + "\r\n3 para Abrir Portaria "
             + "\r\n4 para Alimentar Pets";
+
+        private readonly string adminMenu = "Home Automation - Admin"
+            + "\r\nDigite: "
+            + "\r\n1 para Restart PETS"
+            + "\r\n2 para Restart INTERFONE"
+            + "\r\n3 para Restart DESODORIZACAO"
+            + "\r\n4 para Resrart GatewaySMS"
+            + "\r\n5 para Restart Raspberry"
+            + "\r\n6 para Shutdown Raspberry"
+            + "\r\nMENU para Voltar ao Menu";
+
+        private readonly string scheduleMenu = "Home Automation - Tasks"
+            + "\r\nDigite: "
+            + "\r\n1 para Gravar nova Task"
+            + "\r\nMENU para Voltar ao Menu";
 
         public MqttClientService(IMqttClientOptions options, ILogger<MqttClientService> logger)
         {
@@ -62,6 +80,9 @@ namespace Message.Router.MqttClient.Services
             await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(brokerTopics.TopicoDesodorizacao).Build());
             await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(brokerTopics.TopicoInterfone).Build());
             await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(brokerTopics.TopicoPets).Build());
+
+            await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(brokerTopics.TopicoConfig).Build());
+            await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(brokerTopics.TopicoSchedule).Build());
         }
 
         //public Task HandleDisconnectedAsync(MqttClientDisconnectedEventArgs eventArgs)
@@ -234,8 +255,8 @@ namespace Message.Router.MqttClient.Services
                         await PublishMqttClientAsync(brokerTopics.TopicoDesodorizacao, serializedPayload);
 
                         break;
-						
-					case "RST SMS": // RESTART GATEWAY SMS // INVIAVEL A RESPOSTA DO DEVICE..
+
+                    case "RST SMS": // RESTART GATEWAY SMS // INVIAVEL A RESPOSTA DO DEVICE..
 
                         payload.message = "RST";
                         serializedPayload = PrepareMsgToBroker(payload);
@@ -280,6 +301,67 @@ namespace Message.Router.MqttClient.Services
             {
                 string serializedPayload;
 
+                if (flagAdminMenu)
+                {
+                    switch (payload.message.ToUpper())
+                    {
+                        case "MENU":
+
+                            flagAdminMenu = false;
+                            flagScheduleMenu = false;
+
+                            break;
+
+                        case "1":   // RESTART PETS
+
+                            payload.message = "RST";
+                            serializedPayload = PrepareMsgToBroker(payload);
+                            await PublishMqttClientAsync(brokerTopics.TopicoPets, serializedPayload);
+
+                            break;
+
+                        case "2":   // RESTART INTERFONE
+
+                            payload.message = "RST";
+                            serializedPayload = PrepareMsgToBroker(payload);
+                            await PublishMqttClientAsync(brokerTopics.TopicoInterfone, serializedPayload);
+
+                            break;
+
+                        case "3":   // RESTART DESODORIZADOR
+
+                            payload.message = "RST";
+                            serializedPayload = PrepareMsgToBroker(payload);
+                            await PublishMqttClientAsync(brokerTopics.TopicoDesodorizacao, serializedPayload);
+
+                            break;
+
+                        case "4":   // RESTART GATEWAY SMS
+
+                            payload.message = "RST";
+                            serializedPayload = PrepareMsgToBroker(payload);
+                            await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMS, serializedPayload);
+
+                            break;
+
+                        case "5":   // RESTART BROKER
+
+                            payload.message = "RESTART";
+                            serializedPayload = PrepareMsgToBroker(payload);
+                            await PublishMqttClientAsync(brokerTopics.TopicoConfig, serializedPayload);
+
+                            break;
+
+                        case "6":   // SHUTDOWN BROKER
+
+                            payload.message = "SHUTDOWN";
+                            serializedPayload = PrepareMsgToBroker(payload);
+                            await PublishMqttClientAsync(brokerTopics.TopicoConfig, serializedPayload);
+
+                            break;
+                    }
+                }
+
                 switch (payload.message.ToUpper())
                 {
                     case "MENU":
@@ -322,60 +404,23 @@ namespace Message.Router.MqttClient.Services
 
                         break;
 
-
-                    // OPÇÕES ADMINISTRATIVAS, OCULTAS POR DEFAULT AO MENU
-
-                    case "RST PETS": // RESTART PETS
-
-                        payload.message = "RST";
+                    case "ADMIN":
+                        
+                        flagAdminMenu = true;
+                        payload.message = adminMenu;
                         serializedPayload = PrepareMsgToBroker(payload);
-                        await PublishMqttClientAsync(brokerTopics.TopicoPets, serializedPayload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
 
                         break;
 
-                    case "RST INT": // RESTART INTERFONE
-
-                        payload.message = "RST";
+                    case "ALERT":
+                        
+                        flagScheduleMenu = true;
+                        payload.message = scheduleMenu;
                         serializedPayload = PrepareMsgToBroker(payload);
-                        await PublishMqttClientAsync(brokerTopics.TopicoInterfone, serializedPayload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
 
                         break;
-
-                    case "RST DES": // RESTART DESODORIZADOR
-
-                        payload.message = "RST";
-                        serializedPayload = PrepareMsgToBroker(payload);
-                        await PublishMqttClientAsync(brokerTopics.TopicoDesodorizacao, serializedPayload);
-
-                        break;
-						
-					case "RST SMS": // RESTART GATEWAY SMS // INVIAVEL RESPOSTA DO DEVICE..
-
-                        payload.message = "RST";
-                        serializedPayload = PrepareMsgToBroker(payload);
-                        await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMS, serializedPayload);
-
-                        break;
-
-
-                    // OPÇÕES ADMINISTRATIVAS DO BROKER, OCULTAS POR DEFAULT AO MENU, E COM RESPOSTA HARDCODED NO SCRIPT brokerConfig.sh
-
-                    case "RST BRK": // RESTART BROKER
-
-                        payload.message = "RESTART";
-                        serializedPayload = PrepareMsgToBroker(payload);
-                        await PublishMqttClientAsync(brokerTopics.TopicoConfig, serializedPayload);
-
-                        break;
-
-                    case "STD BRK": // SHUTDOWN BROKER
-
-                        payload.message = "SHUTDOWN";
-                        serializedPayload = PrepareMsgToBroker(payload);
-                        await PublishMqttClientAsync(brokerTopics.TopicoConfig, serializedPayload);
-
-                        break;
-
 
                     default:
 
@@ -393,8 +438,8 @@ namespace Message.Router.MqttClient.Services
             if (!string.IsNullOrEmpty(payload.message))
             {
                 string serializedPayload;
-				
-				int? temp = Convert.ToInt32(payload.message);
+
+                int? temp = Convert.ToInt32(payload.message);
 
                 if (payload.source.ToUpper() == "TELEGRAM")
                 {
@@ -411,8 +456,8 @@ namespace Message.Router.MqttClient.Services
                         await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
                     }
                 }
-				
-				if (payload.source.ToUpper() == "SMS")
+
+                if (payload.source.ToUpper() == "SMS")
                 {
                     if (temp > 0 && temp < 80) // provavel origem de solicitação do usuario
                     {
