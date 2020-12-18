@@ -18,7 +18,7 @@
         public string TopicoPets { get; set; }
 
         public string TopicoConfig { get; set; }
-        public string TopicoSchedule { get; set; }
+        public string TopicoTasks { get; set; }
 
     }
 }

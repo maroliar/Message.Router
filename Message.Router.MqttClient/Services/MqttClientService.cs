@@ -8,6 +8,7 @@ using MQTTnet.Client.Disconnecting;
 using MQTTnet.Client.Options;
 using MQTTnet.Protocol;
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -26,30 +27,25 @@ namespace Message.Router.MqttClient.Services
         private readonly BrokerTopics brokerTopics = AppSettingsProvider.BrokerTopics;
         private readonly ClientSettings clientSettings = AppSettingsProvider.ClientSettings;
 
-        private bool flagAdminMenu;
-        private bool flagScheduleMenu;
+        private Dictionary<string, FlagParams> flagsMenu = new Dictionary<string, FlagParams>();
 
         private readonly string menu = "Home Automation"
-            + "\r\nDigite: "
+            + "\r\n\r\nDigite:"
             + "\r\n1 para Temperatura Raspberry"
             + "\r\n2 para Desodorizar Ambiente "
             + "\r\n3 para Abrir Portaria "
-            + "\r\n4 para Alimentar Pets";
+            + "\r\n4 para Alimentar Pets"
+            + "\r\n5 para Gravar Nova Tarefa";
 
         private readonly string adminMenu = "Home Automation - Admin"
-            + "\r\nDigite: "
+            + "\r\n\r\nDigite:"
             + "\r\n1 para Restart PETS"
             + "\r\n2 para Restart INTERFONE"
             + "\r\n3 para Restart DESODORIZACAO"
             + "\r\n4 para Resrart GatewaySMS"
             + "\r\n5 para Restart Raspberry"
             + "\r\n6 para Shutdown Raspberry"
-            + "\r\nMENU para Voltar ao Menu";
-
-        private readonly string scheduleMenu = "Home Automation - Tasks"
-            + "\r\nDigite: "
-            + "\r\n1 para Gravar nova Task"
-            + "\r\nMENU para Voltar ao Menu";
+            + "\r\n\r\nVOLTAR para Voltar ao Menu";
 
         public MqttClientService(IMqttClientOptions options, ILogger<MqttClientService> logger)
         {
@@ -62,7 +58,6 @@ namespace Message.Router.MqttClient.Services
         private void ConfigureMqttClient()
         {
             mqttClient.ConnectedHandler = this;
-            //mqttClient.DisconnectedHandler = this;
             mqttClient.ApplicationMessageReceivedHandler = this;
         }
 
@@ -82,14 +77,8 @@ namespace Message.Router.MqttClient.Services
             await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(brokerTopics.TopicoPets).Build());
 
             await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(brokerTopics.TopicoConfig).Build());
-            await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(brokerTopics.TopicoSchedule).Build());
+            await mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(brokerTopics.TopicoTasks).Build());
         }
-
-        //public Task HandleDisconnectedAsync(MqttClientDisconnectedEventArgs eventArgs)
-        //{
-        //    // ação de gravar no log a desconeccao
-        //    throw new NotImplementedException();
-        //}
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
@@ -301,134 +290,162 @@ namespace Message.Router.MqttClient.Services
             {
                 string serializedPayload;
 
-                if (flagAdminMenu)
+                if (!flagsMenu.ContainsKey(payload.device))
                 {
-                    switch (payload.message.ToUpper())
-                    {
-                        case "MENU":
-
-                            flagAdminMenu = false;
-                            flagScheduleMenu = false;
-
-                            break;
-
-                        case "1":   // RESTART PETS
-
-                            payload.message = "RST";
-                            serializedPayload = PrepareMsgToBroker(payload);
-                            await PublishMqttClientAsync(brokerTopics.TopicoPets, serializedPayload);
-
-                            break;
-
-                        case "2":   // RESTART INTERFONE
-
-                            payload.message = "RST";
-                            serializedPayload = PrepareMsgToBroker(payload);
-                            await PublishMqttClientAsync(brokerTopics.TopicoInterfone, serializedPayload);
-
-                            break;
-
-                        case "3":   // RESTART DESODORIZADOR
-
-                            payload.message = "RST";
-                            serializedPayload = PrepareMsgToBroker(payload);
-                            await PublishMqttClientAsync(brokerTopics.TopicoDesodorizacao, serializedPayload);
-
-                            break;
-
-                        case "4":   // RESTART GATEWAY SMS
-
-                            payload.message = "RST";
-                            serializedPayload = PrepareMsgToBroker(payload);
-                            await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMS, serializedPayload);
-
-                            break;
-
-                        case "5":   // RESTART BROKER
-
-                            payload.message = "RESTART";
-                            serializedPayload = PrepareMsgToBroker(payload);
-                            await PublishMqttClientAsync(brokerTopics.TopicoConfig, serializedPayload);
-
-                            break;
-
-                        case "6":   // SHUTDOWN BROKER
-
-                            payload.message = "SHUTDOWN";
-                            serializedPayload = PrepareMsgToBroker(payload);
-                            await PublishMqttClientAsync(brokerTopics.TopicoConfig, serializedPayload);
-
-                            break;
-                    }
+                    flagsMenu.Add(payload.device, new FlagParams { FlagAdminMenu = false });
                 }
 
-                switch (payload.message.ToUpper())
+                var opcao = payload.message.ToUpper();
+
+
+                // ADMIN MENU
+
+                if (flagsMenu[payload.device].FlagAdminMenu)
                 {
-                    case "MENU":
+                    if (opcao.Trim() == "MENU")         // EXIBIR MENU ADMIN
+                    {
+                        payload.message = adminMenu;
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                    }
+
+                    else if (opcao.Trim() == "VOLTAR")  // VOLTAR MENU PRINICPAL
+                    {
+                        if (flagsMenu.ContainsKey(payload.device))
+                        {
+                            flagsMenu[payload.device].FlagAdminMenu = false;
+                        }
 
                         payload.message = menu;
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                    }
 
-                        break;
+                    else if (opcao.Trim() == "1")       // RESTART ESP32 PETS
+                    {
+                        payload.message = "RST";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoPets, serializedPayload);
+                    }
 
-                    case "1":
+                    else if (opcao.Trim() == "2")       // RESTART NODEMCU INTERFONE
+                    {
+                        payload.message = "RST";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoInterfone, serializedPayload);
+                    }
 
+                    else if (opcao.Trim() == "3")       // RESTART ESP8266 DESODORIZACAO
+                    {
+                        payload.message = "RST";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoDesodorizacao, serializedPayload);
+                    }
+
+                    else if (opcao.Trim() == "4")       // RESTART ESP32 GATEWAYSMS
+                    {
+                        payload.message = "RST";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoGatewaySMS, serializedPayload);
+                    }
+
+                    else if (opcao.Trim() == "5")       // RESTART BROKER RASPBERRYPI
+                    {
+                        payload.message = "RESTART";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoConfig, serializedPayload);
+                    }
+
+                    else if (opcao.Trim() == "6")       // SHUTDOWN BROKER RASPBERRYPI
+                    {
+                        payload.message = "SHUTDOWN";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoConfig, serializedPayload);
+                    }
+
+                    else
+                    {
+                        payload.message = "Opcao Invalida! \r\nDigite MENU para ver as Opções";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                    }
+                }
+
+
+                // MENU PRINCIPAL
+
+                else
+                {
+                    if (opcao.Trim() == "MENU")         // EXIBIR MENU PRINCIPAL
+                    {
+                        payload.message = menu;
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                    }
+
+                    else if (opcao.Trim() == "1")       // EXIBIR TEMPERATURA
+                    {
                         payload.message = "GET";
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoTemperatura, serializedPayload);
+                    }
 
-                        break;
-
-                    case "2":
-
+                    else if (opcao.Trim() == "2")       // DESODORIZAR AMBIENTE
+                    {
                         payload.message = "ACT";
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoDesodorizacao, serializedPayload);
+                    }
 
-                        break;
-
-                    case "3":
-
+                    else if (opcao.Trim() == "3")       // ABRIR PORTARIA
+                    {
                         payload.message = "ACT";
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoInterfone, serializedPayload);
+                    }
 
-                        break;
-
-                    case "4":
-
+                    else if (opcao.Trim() == "4")       // ALIMENTAR PETS
+                    {
                         payload.message = "ACT";
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoPets, serializedPayload);
+                    }
 
-                        break;
+                    else if (opcao.Trim() == "5")       // EXIBIR OPCAO DE ALERTA
+                    {
+                        payload.message = "Digite a nova tarefa seguido do tempo em minutos, conforme exemplo abaixo: " + "\r\n\r\nALERT Jogar o Lixo Fora, 30";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                    }
 
-                    case "ADMIN":
-                        
-                        flagAdminMenu = true;
+                    else if (opcao.StartsWith("ALERT")) // GRAVAR NOVO ALERTA
+                    {
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoTasks, serializedPayload);
+
+                        payload.message = "Tarefa Gravada! Voce deverá receber uma notificação no tempo escolhido.";
+                        serializedPayload = PrepareMsgToBroker(payload);
+                        await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                    }
+
+                    else if (opcao.Trim() == "ADMIN")   // ENTRAR NO MENU ADMIN
+                    {
+                        if (flagsMenu.ContainsKey(payload.device))
+                        {
+                            flagsMenu[payload.device].FlagAdminMenu = true;
+                        }
+
                         payload.message = adminMenu;
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
+                    }
 
-                        break;
-
-                    case "ALERT":
-                        
-                        flagScheduleMenu = true;
-                        payload.message = scheduleMenu;
+                    else
+                    {
+                        payload.message = "Opcao Invalida! \r\nDigite MENU para ver as Opções";
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
-
-                        break;
-
-                    default:
-
-                        payload.message = "Opcao Invalida!";
-                        serializedPayload = PrepareMsgToBroker(payload);
-                        await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
-
-                        break;
+                    }
                 }
             }
         }
@@ -647,6 +664,12 @@ namespace Message.Router.MqttClient.Services
                 .WithQualityOfServiceLevel((MqttQualityOfServiceLevel)qos)
                 .WithRetainFlag(retainFlag)
                 .Build());
+        }
+
+        private void CheckFlagParams(string device)
+        {
+
+
         }
     }
 }
