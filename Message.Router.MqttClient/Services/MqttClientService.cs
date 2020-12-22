@@ -413,7 +413,7 @@ namespace Message.Router.MqttClient.Services
 
                     else if (payload.message == "5")       // EXIBIR OPCAO DE ALERTA
                     {
-                        payload.message = "Digite a nova tarefa seguido do tempo em minutos, conforme exemplo abaixo: " + "\r\n\r\nALERT Jogar o Lixo Fora, 30";
+                        payload.message = "Digite a nova tarefa seguido do tempo em minutos, conforme exemplo abaixo: " + "\r\n\r\nALERT Jogar o Lixo Fora 30";
                         serializedPayload = PrepareMsgToBroker(payload);
                         await PublishMqttClientAsync(brokerTopics.TopicoGatewayTelegramSaida, serializedPayload);
                     }
